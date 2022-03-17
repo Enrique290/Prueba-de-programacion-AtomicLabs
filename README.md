@@ -12,7 +12,7 @@ Para instalar Pygame es necesario tener instalado python en la computadora. Desp
 
 Dar enter y esperar a que finalice la instalación. Listo, se puede hacer uso de la librería y jugar el videojuego del repositorio. Que lo disfrute.
 
-Se debe ejecutar el archivo **"main.py"** y si no responde adecuadamente el juego, favor de reiniciar la ejecución del archivo.
+### Se debe ejecutar el archivo **"main.py"** y si no responde adecuadamente el juego, favor de reiniciar la ejecución del archivo.
 
 Para más información sobre Pygame, puede consultar: https://pypi.org/project/pygame/
 
