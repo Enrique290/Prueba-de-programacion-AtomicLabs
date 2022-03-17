@@ -1,4 +1,4 @@
-# Prueba-de-programación-AtomicLabs
+# Prueba de programación - AtomicLabs
 ## Importante
 El proyecto fue creado con python y la librería pygame. Pygame es una librería de python que sirve para poder hacer uso de métodos gráficos en 2d con el lenguaje de programación, y su mayor uso es para videojuego.
 
