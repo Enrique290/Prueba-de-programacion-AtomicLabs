@@ -1,4 +1,5 @@
 from select import select
+from tkinter import Y
 from types import NoneType
 import pygame, sys, random
 from pygame.locals import *
@@ -44,14 +45,21 @@ class Human:
         self.y_coord = y_coord
         self.x_game = 44+(39*(y_coord))
         self.y_game = 40+(39*(x_coord))
-        self.infected = False
-        self.status = 0
+        self.infected_status = False
+        self.virus_growing = 0
     
     def mov(self, x_coord, y_coord):
         self.x_coord = x_coord
         self.y_coord = y_coord
         self.x_game = 44+(39*(y_coord))
         self.y_game = 40+(39*(x_coord))
+
+    def infected(self):
+        self.img = human_infected_rend
+        self.infected_status = True
+
+    def transform(self):
+        self.virus_growing += 1
 
 class Zombie:
     def __init__(self, img, cell):
@@ -60,7 +68,9 @@ class Zombie:
         self.x_game = (44+(39*(cell+2))) if cell < 4 else (44+(39*(cell+8)))
         self.y_game = 1
 
-    def mov(self, x_coord, y_coord):
+    def mov(self, x_coord, y_coord, x_previous, y_previous):
+        self.x_previous = x_previous
+        self.y_previous = y_previous
         self.x_coord = x_coord
         self.y_coord = y_coord
         self.x_game = 44+(39*(y_coord))
@@ -99,11 +109,11 @@ def data_check(start_game, no_zombies, humans_coords):
 
     return start_game
 
-def pygame_config():
+def pygame_config(clock_refresh=10):
     #Refrescar pantalla
     pygame.display.flip()
     #Definir FPS
-    clock.tick(10)
+    clock.tick(clock_refresh)
     #Background color
     screen.fill(BLACK)
     #Background
@@ -269,6 +279,56 @@ def game_function(humans_coords, no_zombies):
             points = []
         else:
             print("Zombies turn")
+            for zombie in zombies:
+                for i in range(4):
+                    if(zombie.y_game == 1):
+                        y_zombie = (zombie.x_game-44) // 39
+                        y_zombie = (y_zombie-1) + random.randrange(3)
+                        if (board[0][y_zombie]==0):
+                            zombie.mov(0, y_zombie, -1, -1)
+                    else:
+                        generated=True
+                        while generated:
+                            x_zombie=random.randrange(zombie.x_coord-1,zombie.x_coord+2)
+                            y_zombie=random.randrange(zombie.y_coord-1,zombie.y_coord+2)
+                            if(x_zombie >= 0 and y_zombie >= 0 and x_zombie < 18 and y_zombie < 18):
+                                if((zombie.x_previous, zombie.y_previous) != (x_zombie, y_zombie)):
+                                    if(board[x_zombie][y_zombie] == 0):
+                                        zombie.mov(x_zombie, y_zombie, zombie.x_coord, zombie.y_coord)
+                                        generated=False
+                                    else:
+                                        generated=True
+                                else:
+                                    generated=True
+                            else:
+                                generated=True
+                    pygame_config(1)
+                    board = fill_board(board, humans, zombies)
+                    
+                    
+            
+            for zombie in zombies:
+                for x_coord in range(zombie.x_coord-1, zombie.x_coord+2):
+                    for y_coord in range(zombie.y_coord-1, zombie.y_coord+2):
+                        if(board[x_coord][y_coord] == 1):
+                            for human in humans:
+                                if(human.x_coord == x_coord and human.y_coord == y_coord):
+                                    human.infected()
+
+            for human in humans:
+                if(human.infected_status):
+                    human.transform()
+
+                    if(human.virus_growing==3):
+                        zombies.append(Zombie(zombie_rend, 0))
+                        zombies[len(zombies)-1].mov(human.x_coord, human.y_coord, -1, -1)
+                        delete_human(humans, human.x_coord, human.y_coord)
+
+
+            humans_turn = True
+            humans_moves = 0
+
+
                       
 
 def main():
