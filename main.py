@@ -328,7 +328,7 @@ def zombies_mov(zombies, board, humans):
                         generated=True
             pygame_config(1)
             print_characters(humans, zombies)
-    board = fill_board(board, humans, zombies)
+            board = fill_board(board, humans, zombies)
     return zombies, board
 
 # Función que analiza las casillas adyacentes del zombie, para infetar a un Humano
