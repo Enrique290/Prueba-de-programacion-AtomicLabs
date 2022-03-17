@@ -22,6 +22,7 @@ size = (780,780)
 
 # Crear ventana.
 screen = pygame.display.set_mode(size)
+pygame.display.set_caption('¡Ataque Zombie en AtomicLabs!')
 
 # Controlador de FPS.
 clock = pygame.time.Clock()
@@ -39,6 +40,7 @@ point_img = pygame.image.load("./assets/point.png")
 point_H_img = pygame.image.load("./assets/point-H.png")
 point_Z_img = pygame.image.load("./assets/point-Z.png")
 gameOver_img = pygame.image.load("./assets/GameOver.png")
+pygame.display.set_icon(zombie_img)
 
 # Renderizado de imagenes.
 background_rend = pygame.transform.scale(background, (780,780))
