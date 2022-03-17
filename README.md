@@ -1,4 +1,20 @@
 # Prueba-de-programacion-AtomicLabs
+## Importante
+El proyecto fue creado con python y la libreria pygame. Pygame es una librería de python que sirve para poder hacer uso de metodos graficos en 2d con el lenguaje de programación, y su mayor uso es para videojuego.
+
+### Instalar Pygame
+
+Para instalar Pygame es necesario tener instalado python en la computadora. Despues en la terminal del sistema operativo se debe escribir lo siguiente:
+
+***pip install pygame***
+![pygame](https://github.com/Enrique290/Prueba-de-programacion-AtomicLabs/blob/master/github_img/pygame_logo.png)
+Dar enter y esperar a que finalice la instalación. Listo, se puede hacer uso dela librería y jugar el juego del repositorio. Que lo disfrutes.
+
+Para mas información puedes consultar: https://pypi.org/project/pygame/
+
+## Introducción
+En el presente repositorio se presenta el desarrollo de un videojuego de estrategia por turnos 2d. En donde el objetivo del jugador es sacar a todas las personas de una oficina, para que estas no se transformen en zombies. Por turno, se podra mover un solo personaje 2 casillas y en el siguiente turno los zombies se moveran de forma aleatoria 4 casillas, sin regresar a la anterior de la que se movieron. El juego termina al solo quedar zombies en la oficina.
+
 ## Analisis y comprensión del problema
 Primero se analizo lo solicitado y se escribieron los requerimientos funcionales del juego:
  - El juego debe ser en un tablero
