@@ -39,7 +39,8 @@ width, cols = 702, 18
 cell_size = width//cols
 
 class Human:
-    def __init__(self, img, x_coord, y_coord):
+    def __init__(self, img, x_coord, y_coord, i):
+        self.number = i
         self.img = img
         self.x_coord = x_coord
         self.y_coord = y_coord
@@ -79,7 +80,7 @@ class Zombie:
 #Carga de json
 def load_json(file):
     with open(file) as data:
-        print(f"\n Documento '{file}' cargado correctamente!")
+        print(f"\n Documento '{file}' cargado correctamente!\n")
         return json.load(data)
 
 def data_check(start_game, no_zombies, humans_coords):
@@ -119,10 +120,19 @@ def pygame_config(clock_refresh=10):
     #Background
     screen.blit(background_rend, (0,0))
 
-def zombies_coords(no_zombies, zombies):
+def fill_humans(humans, humans_coords):
+    i=0
+    for coords in humans_coords:
+        i+=1
+        humans.append(Human(human_rend, coords["x"], coords["y"], i))
+    return humans
+
+def fill_zombies(no_zombies, zombies):
     for aux in range(no_zombies):
+        no_random=0
         if(aux == 0):
-            zombies.append(Zombie(zombie_rend, random.randrange(8)))
+            no_random = random.randrange(8)
+            zombies.append(Zombie(zombie_rend, no_random))
         else:
             i=True
             while i:
@@ -134,6 +144,7 @@ def zombies_coords(no_zombies, zombies):
                         i=True
                         break
             zombies.append(Zombie(zombie_rend, no_random))
+        print(f"Un zombie llego por la ventana {no_random+1}")
     return zombies
 
 def fill_board(board, humans, zombies):
@@ -167,13 +178,10 @@ def fill_board(board, humans, zombies):
     for col in cols:
         for i in range(11,15):
             board[i][col]=3
-    
     for human in humans:
         screen.blit(human.img, (human.x_game, human.y_game))
-
     for zombie in zombies:
         screen.blit(zombie.img, (zombie.x_game, zombie.y_game))
-
     return board
 
 def points_to_move(board, humans, points, row_click, col_click, select, select_human, humans_moves):
@@ -208,8 +216,83 @@ def delete_human(humans, x_coord, y_coord):
         count+=1
     if(found):
         del humans[delete]
-
     return humans
+
+def human_mov(selected_points, row_click, col_click, selected_human, humans_moves, humans, saved_humans, humans_turn):
+    for move_to in selected_points:
+        if(move_to == (row_click, col_click)):
+            selected_human.mov(row_click, col_click)
+            humans_moves+=1
+            for i in range(14, 18):
+                if((selected_human.x_coord, selected_human.y_coord)==(i,18)):
+                    print(f"Humano {selected_human.number} salvado en la casilla ({selected_human.x_coord},{selected_human.y_coord})")
+                    humans = delete_human(humans, selected_human.x_coord, selected_human.y_coord)
+                    saved_humans += 1
+                    humans_moves=2
+                    break
+            if(humans_moves>=2):
+                humans_moves = 0
+                humans_turn = False
+    return humans_moves, humans, saved_humans, humans_turn
+
+def zombies_mov(zombies, board, humans):
+    for zombie in zombies:
+        for i in range(4):
+            if(zombie.y_game == 1):
+                y_zombie = (zombie.x_game-44) // 39
+                y_zombie = (y_zombie-1) + random.randrange(3)
+                if (board[0][y_zombie]==0):
+                    zombie.mov(0, y_zombie, -1, -1)
+            else:
+                generated=True
+                while generated:
+                    x_zombie=random.randrange(zombie.x_coord-1,zombie.x_coord+2)
+                    y_zombie=random.randrange(zombie.y_coord-1,zombie.y_coord+2)
+                    if(x_zombie >= 0 and y_zombie >= 0 and x_zombie < 18 and y_zombie < 18):
+                        if((zombie.x_previous, zombie.y_previous) != (x_zombie, y_zombie)):
+                            if(board[x_zombie][y_zombie] == 0):
+                                zombie.mov(x_zombie, y_zombie, zombie.x_coord, zombie.y_coord)
+                                generated=False
+                            else:
+                                generated=True
+                        else:
+                            generated=True
+                    else:
+                        generated=True
+            pygame_config(1)
+            board = fill_board(board, humans, zombies)
+    return zombies, board
+
+def humans_infected(zombies, board, humans):
+    for zombie in zombies:
+        for x_coord in range(zombie.x_coord-1, zombie.x_coord+2):
+            for y_coord in range(zombie.y_coord-1, zombie.y_coord+2):
+                if(board[x_coord][y_coord] == 1):
+                    for human in humans:
+                        if(human.x_coord == x_coord and human.y_coord == y_coord and human.infected_status == False):
+                            human.infected()
+                            print(f"Humano {human.number} infectado en la casilla ({human.x_coord},{human.y_coord})")
+    return humans
+
+def humans_to_zombies(humans, zombies):
+    for human in humans:
+        if(human.infected_status):
+            human.transform()
+            if(human.virus_growing==3):
+                zombies.append(Zombie(zombie_rend, 0))
+                zombies[len(zombies)-1].mov(human.x_coord, human.y_coord, -1, -1)
+                delete_human(humans, human.x_coord, human.y_coord)
+    return humans, zombies
+
+def save_archive(iteration, no_humans, no_zombies, saved_humans, mode=2):
+    if(mode == 1):
+        f = open("iteraciones.txt","w+")
+    if(mode == 2):
+        f = open("iteraciones.txt","a+")
+    
+    f.write(f"{iteration} | {no_zombies} | {no_humans} | {saved_humans} \n")
+    f.close()
+        
 
 def game_function(humans_coords, no_zombies):
     humans = []
@@ -222,17 +305,17 @@ def game_function(humans_coords, no_zombies):
     points = []
     selected_points = []
     select = False
-    select_human = Human(NoneType,0,0)
-    selected_human = Human(NoneType,0,0)
+    select_human = Human(NoneType,0,0,0)
+    selected_human = Human(NoneType,0,0,0)
     saved_humans = 0
     humans_turn = True
     humans_moves = 0
     iteration = 0
 
-    for coords in humans_coords:
-        humans.append(Human(human_rend, coords["x"], coords["y"]))
-    
-    zombies = zombies_coords(no_zombies, zombies)
+    humans = fill_humans(humans, humans_coords)
+    zombies = fill_zombies(no_zombies, zombies)
+
+    save_archive(iteration, len(humans), len(zombies), saved_humans, 1)
 
     while True:
         pygame_config()
@@ -260,77 +343,26 @@ def game_function(humans_coords, no_zombies):
             if(select):
                 selected_human = select_human
                 selected_points = points
-            
-            for move_to in selected_points:
-                if(move_to == (row_click, col_click)):
-                    selected_human.mov(row_click, col_click)
-                    humans_moves+=1
-                    for i in range(14, 18):
-                        if((selected_human.x_coord, selected_human.y_coord)==(i,18)):
-                            humans = delete_human(humans, selected_human.x_coord, selected_human.y_coord)
-                            saved_humans+=1
-                            mouse_pos = (-1,-1)
-                            humans_moves=2
-                            break
-                    if(humans_moves>=2):
-                        humans_turn = False
 
-            print(saved_humans)
+            humans_moves, humans, saved_humans, humans_turn = human_mov(selected_points, row_click, col_click, selected_human, humans_moves, humans, saved_humans, humans_turn)
+
+            if(humans_turn==False):
+                selected_points = []
+                select_human = Human(NoneType,0,0,0)
+                selected_human = Human(NoneType,0,0,0)
+                mouse_pos = (-1,-1)
+                select = False
+
             points = []
         else:
-            print("Zombies turn")
-            for zombie in zombies:
-                for i in range(4):
-                    if(zombie.y_game == 1):
-                        y_zombie = (zombie.x_game-44) // 39
-                        y_zombie = (y_zombie-1) + random.randrange(3)
-                        if (board[0][y_zombie]==0):
-                            zombie.mov(0, y_zombie, -1, -1)
-                    else:
-                        generated=True
-                        while generated:
-                            x_zombie=random.randrange(zombie.x_coord-1,zombie.x_coord+2)
-                            y_zombie=random.randrange(zombie.y_coord-1,zombie.y_coord+2)
-                            if(x_zombie >= 0 and y_zombie >= 0 and x_zombie < 18 and y_zombie < 18):
-                                if((zombie.x_previous, zombie.y_previous) != (x_zombie, y_zombie)):
-                                    if(board[x_zombie][y_zombie] == 0):
-                                        zombie.mov(x_zombie, y_zombie, zombie.x_coord, zombie.y_coord)
-                                        generated=False
-                                    else:
-                                        generated=True
-                                else:
-                                    generated=True
-                            else:
-                                generated=True
-                    pygame_config(1)
-                    board = fill_board(board, humans, zombies)
-                    
-                    
+            zombies, board = zombies_mov(zombies, board, humans)
+            humans = humans_infected(zombies, board, humans)
+            humans, zombies = humans_to_zombies(humans, zombies)
             
-            for zombie in zombies:
-                for x_coord in range(zombie.x_coord-1, zombie.x_coord+2):
-                    for y_coord in range(zombie.y_coord-1, zombie.y_coord+2):
-                        if(board[x_coord][y_coord] == 1):
-                            for human in humans:
-                                if(human.x_coord == x_coord and human.y_coord == y_coord):
-                                    human.infected()
-
-            for human in humans:
-                if(human.infected_status):
-                    human.transform()
-
-                    if(human.virus_growing==3):
-                        zombies.append(Zombie(zombie_rend, 0))
-                        zombies[len(zombies)-1].mov(human.x_coord, human.y_coord, -1, -1)
-                        delete_human(humans, human.x_coord, human.y_coord)
-
-
+            iteration+=1
+            save_archive(iteration, len(humans), len(zombies), saved_humans)
             humans_turn = True
-            humans_moves = 0
-
-
                       
-
 def main():
     start_game = True
     data = load_json("config.json")
