@@ -10,9 +10,11 @@ Para instalar Pygame es necesario tener instalado python en la computadora. Desp
 
 ***pip install pygame***
 
-Dar enter y esperar a que finalice la instalación. Listo, se puede hacer uso de la librería y jugar el videojuego del repositorio. Que lo disfrutes.
+Dar enter y esperar a que finalice la instalación. Listo, se puede hacer uso de la librería y jugar el videojuego del repositorio. Que lo disfrute.
 
-Para más información puedes consultar: https://pypi.org/project/pygame/
+Se debe ejecutar el archivo **"main.py"** y si no responde adecuadamente el juego, favor de reiniciar la ejecución del archivo.
+
+Para más información sobre Pygame, puede consultar: https://pypi.org/project/pygame/
 
 ## Introducción
 En el presente repositorio se presenta el desarrollo de un videojuego de estrategia por turnos 2d. En donde el objetivo del jugador es sacar a todas las personas de una oficina, para que estas no se transformen en zombies. Por turno, se podrá mover un solo personaje 2 casillas y en el siguiente turno los zombies se moverán de forma aleatoria 4 casillas, sin regresar a la anterior de la que se movieron. El juego termina al solo quedar zombies en la oficina.
